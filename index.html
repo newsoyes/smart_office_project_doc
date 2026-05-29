@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Office — Meeting Room Booking System</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1628;
+    --bg3: #141c35;
+    --surface: #1a2340;
+    --surface2: #1e2a4a;
+    --border: #2a3a60;
+    --accent: #4f8eff;
+    --accent2: #00e5b0;
+    --accent3: #ff6b6b;
+    --accent4: #ffc93c;
+    --text: #e8eeff;
+    --text2: #8a9bc4;
+    --text3: #5a6a94;
+    --glow: 0 0 30px rgba(79,142,255,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Sarabun', 'Noto Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo .logo-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-logo h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .nav-section {
+    padding: 8px 24px 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--text2);
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active {
+    background: rgba(79,142,255,0.08);
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .nav-item.active .nav-dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* MAIN CONTENT */
+  .main {
+    margin-left: 260px;
+    min-height: 100vh;
+    padding: 40px 48px;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* HEADERS */
+  .page-header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0;
+    width: 80px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    max-width: 120px;
+  }
+
+  h2.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .page-desc {
+    font-size: 14px;
+    color: var(--text2);
+    max-width: 600px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* BADGES & TAGS */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .badge-blue { background: rgba(79,142,255,0.15); color: var(--accent); border: 1px solid rgba(79,142,255,0.3); }
+  .badge-green { background: rgba(0,229,176,0.12); color: var(--accent2); border: 1px solid rgba(0,229,176,0.25); }
+  .badge-red { background: rgba(255,107,107,0.12); color: var(--accent3); border: 1px solid rgba(255,107,107,0.25); }
+  .badge-yellow { background: rgba(255,201,60,0.12); color: var(--accent4); border: 1px solid rgba(255,201,60,0.25); }
+
+  /* TECH STACK TABLE */
+  .tech-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    gap: 16px;
+    font-size: 13.5px;
+  }
+
+  .tech-layer {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .tech-name {
+    color: var(--text);
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .tech-reason {
+    color: var(--text2);
+    font-size: 12.5px;
+    text-align: right;
+  }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2), var(--border));
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 28px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -28px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 10px rgba(79,142,255,0.5);
+  }
+
+  .timeline-phase {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .timeline-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .timeline-tasks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .timeline-tasks li {
+    font-size: 13px;
+    color: var(--text2);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .timeline-tasks li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent2);
+    font-size: 11px;
+  }
+
+  /* FEATURE LIST */
+  .feature-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 8px;
+    background: var(--bg3);
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .feature-item:hover { border-color: var(--border); }
+
+  .feature-num {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: rgba(79,142,255,0.15);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .feature-content .feature-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .feature-content .feature-desc {
+    font-size: 12.5px;
+    color: var(--text2);
+  }
+
+  /* ARCHITECTURE DIAGRAM */
+  .arch-diagram {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+  }
+
+  .arch-layer {
+    margin-bottom: 24px;
+  }
+
+  .arch-layer-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .arch-boxes {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arch-box {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--text3);
+    font-size: 18px;
+    margin: -10px 0;
+    letter-spacing: 8px;
+  }
+
+  /* DB SCHEMA TABLE */
+  .schema-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .schema-table th {
+    background: var(--bg3);
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .schema-table th:first-child { border-radius: 8px 0 0 0; }
+  .schema-table th:last-child { border-radius: 0 8px 0 0; }
+
+  .schema-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(42,58,96,0.5);
+    color: var(--text2);
+    vertical-align: middle;
+  }
+
+  .schema-table tr:hover td { background: var(--bg3); }
+
+  .schema-table .pk {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent4);
+  }
+
+  .schema-table .fk {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+  }
+
+  .schema-table .field-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .schema-table .dtype {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent3);
+  }
+
+  /* API ENDPOINT */
+  .endpoint {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+  }
+
+  .method {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .method-get { background: rgba(0,229,176,0.15); color: var(--accent2); }
+  .method-post { background: rgba(79,142,255,0.15); color: var(--accent); }
+  .method-put { background: rgba(255,201,60,0.15); color: var(--accent4); }
+  .method-delete { background: rgba(255,107,107,0.15); color: var(--accent3); }
+
+  .endpoint-path {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .endpoint-desc {
+    font-size: 12px;
+    color: var(--text2);
+    text-align: right;
+  }
+
+  /* SUMMARY STATS */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* IOT FLOW */
+  .iot-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 20px 0;
+  }
+
+  .flow-box {
+    flex-shrink: 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .flow-arrow {
+    flex-shrink: 0;
+    padding: 0 8px;
+    color: var(--text3);
+    font-size: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .flow-label {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 5px;
+  }
+
+  .flow-emoji { font-size: 22px; margin-bottom: 5px; }
+
+  /* COST TABLE */
+  .cost-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(42,58,96,0.5);
+    font-size: 13.5px;
+    gap: 12px;
+  }
+
+  .cost-row:last-child { border-bottom: none; }
+  .cost-item { flex: 1; color: var(--text); }
+  .cost-qty { color: var(--text2); font-size: 12px; min-width: 60px; text-align: center; }
+  .cost-price { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent4); min-width: 100px; text-align: right; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.6s ease;
+  }
+
+  .code-block {
+    background: #080d1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #a8c7ff;
+    overflow-x: auto;
+    line-height: 1.8;
+    margin: 12px 0;
+  }
+
+  .code-block .kw { color: #ff79c6; }
+  .code-block .str { color: #f1fa8c; }
+  .code-block .comment { color: #6272a4; }
+  .code-block .fn { color: #50fa7b; }
+  .code-block .num { color: #bd93f9; }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+  .highlight-box {
+    background: rgba(79,142,255,0.07);
+    border: 1px solid rgba(79,142,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    color: var(--text2);
+  }
+
+  .highlight-box strong { color: var(--accent); }
+
+  /* ROLES */
+  .role-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+
+  .role-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .role-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .permissions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .perm {
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 900px) {
+    .sidebar { width: 220px; }
+    .main { margin-left: 220px; padding: 24px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .iot-flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">PROJECT DOCS</div>
+    <h1>Smart Office<br>Booking System</h1>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <div class="nav-item active" onclick="show('overview')">
+    <span class="nav-dot"></span> ภาพรวมโปรเจ็ก
+  </div>
+  <div class="nav-item" onclick="show('features')">
+    <span class="nav-dot"></span> Features ทั้งหมด
+  </div>
+
+  <div class="nav-section">System Design</div>
+  <div class="nav-item" onclick="show('architecture')">
+    <span class="nav-dot"></span> Architecture
+  </div>
+  <div class="nav-item" onclick="show('database')">
+    <span class="nav-dot"></span> Database Schema
+  </div>
+  <div class="nav-item" onclick="show('api')">
+    <span class="nav-dot"></span> API Endpoints
+  </div>
+  <div class="nav-item" onclick="show('iot')">
+    <span class="nav-dot"></span> IoT Integration
+  </div>
+
+  <div class="nav-section">Implementation</div>
+  <div class="nav-item" onclick="show('techstack')">
+    <span class="nav-dot"></span> Tech Stack
+  </div>
+  <div class="nav-item" onclick="show('roles')">
+    <span class="nav-dot"></span> User Roles
+  </div>
+  <div class="nav-item" onclick="show('timeline')">
+    <span class="nav-dot"></span> Timeline
+  </div>
+  <div class="nav-item" onclick="show('hardware')">
+    <span class="nav-dot"></span> Hardware List
+  </div>
+  <div class="nav-item" onclick="show('budget')">
+    <span class="nav-dot"></span> Budget Estimate
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ======================== OVERVIEW ======================== -->
+  <section id="overview" class="section active">
+    <div class="page-header">
+      <div class="section-tag">01 — OVERVIEW</div>
+      <h2 class="page-title">ภาพรวมโปรเจ็ก</h2>
+      <p class="page-desc">ระบบจองห้องประชุมอัจฉริยะที่เชื่อมต่อกับ IoT สำหรับ Smart Office ครบวงจร</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-num">5</div>
+        <div class="stat-label">โมดูลหลัก</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-label">User Roles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">24+</div>
+        <div class="stat-label">API Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">6</div>
+        <div class="stat-label">เดือน (Timeline)</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(79,142,255,0.15)">🎯</div>
+          วัตถุประสงค์โปรเจ็ก
+        </div>
+        <div class="timeline" style="padding-left:24px">
+          <div class="timeline-item" style="margin-bottom:14px">
+            <div style="font-size:13.5px; color:var(--text2)">ลดปัญหา <span style="color:var(--text)">Double Booking</span> และห้องว่างแต่ไม่มีในระบบ</div>
+          </div>
+          <div class="timeline-item" style="margin-bottom:14px">
+            <div style="font-size:13.5px; color:var(--text2)">ตรวจสอบสถานะห้องประชุม <span style="color:var(--text)">Real-time</span> จาก IoT Sensor</div>
+          </div>
+          <div class="timeline-item" style="margin-bottom:14px">
+            <div style="font-size:13.5px; color:var(--text2)">ประหยัดพลังงาน ด้วยการ Auto Off เมื่อไม่มีคนใช้งาน</div>
+          </div>
+          <div class="timeline-item" style="margin-bottom:0">
+            <div style="font-size:13.5px; color:var(--text2)">วิเคราะห์ข้อมูลการใช้ห้องเพื่อวางแผนองค์กร</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,229,176,0.12)">⚡</div>
+          Key Highlights
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">Realtime Occupancy Detection</span>
+            <span class="badge badge-green">IoT</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">Auto Cancel ถ้าไม่มีคนเข้าใน 10 นาที</span>
+            <span class="badge badge-blue">Smart</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">QR Code Check-in หน้าห้อง</span>
+            <span class="badge badge-blue">UX</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">LINE / Email Notification</span>
+            <span class="badge badge-yellow">Notify</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">Dashboard + Analytics รายงาน</span>
+            <span class="badge badge-yellow">Admin</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:13.5px">
+            <span style="color:var(--text2)">Google Calendar Sync</span>
+            <span class="badge badge-green">Integration</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(255,201,60,0.12)">🏗️</div>
+        System Components ภาพรวม
+      </div>
+      <div class="arch-diagram">
+        <div class="arch-layer">
+          <div class="arch-layer-title">🖥️ Frontend Layer</div>
+          <div class="arch-boxes">
+            <div class="arch-box" style="background:rgba(79,142,255,0.12); color:var(--accent); border:1px solid rgba(79,142,255,0.3)">Next.js Web App</div>
+            <div class="arch-box" style="background:rgba(79,142,255,0.12); color:var(--accent); border:1px solid rgba(79,142,255,0.3)">Admin Dashboard</div>
+            <div class="arch-box" style="background:rgba(79,142,255,0.12); color:var(--accent); border:1px solid rgba(79,142,255,0.3)">LED Display (หน้าห้อง)</div>
+            <div class="arch-box" style="background:rgba(79,142,255,0.12); color:var(--accent); border:1px solid rgba(79,142,255,0.3)">LINE Bot</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ ↕ ↕</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-title">⚙️ Backend Layer</div>
+          <div class="arch-boxes">
+            <div class="arch-box" style="background:rgba(0,229,176,0.1); color:var(--accent2); border:1px solid rgba(0,229,176,0.25)">Node.js REST API</div>
+            <div class="arch-box" style="background:rgba(0,229,176,0.1); color:var(--accent2); border:1px solid rgba(0,229,176,0.25)">WebSocket Server</div>
+            <div class="arch-box" style="background:rgba(0,229,176,0.1); color:var(--accent2); border:1px solid rgba(0,229,176,0.25)">MQTT Broker</div>
+            <div class="arch-box" style="background:rgba(0,229,176,0.1); color:var(--accent2); border:1px solid rgba(0,229,176,0.25)">Cron Job Scheduler</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ ↕ ↕</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-title">🗄️ Data Layer</div>
+          <div class="arch-boxes">
+            <div class="arch-box" style="background:rgba(255,201,60,0.1); color:var(--accent4); border:1px solid rgba(255,201,60,0.25)">PostgreSQL (ข้อมูลหลัก)</div>
+            <div class="arch-box" style="background:rgba(255,201,60,0.1); color:var(--accent4); border:1px solid rgba(255,201,60,0.25)">Redis (Cache/Session)</div>
+            <div class="arch-box" style="background:rgba(255,201,60,0.1); color:var(--accent4); border:1px solid rgba(255,201,60,0.25)">InfluxDB (Sensor Data)</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕</div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-title">📡 IoT Layer</div>
+          <div class="arch-boxes">
+            <div class="arch-box" style="background:rgba(255,107,107,0.1); color:var(--accent3); border:1px solid rgba(255,107,107,0.25)">ESP32 (MCU)</div>
+            <div class="arch-box" style="background:rgba(255,107,107,0.1); color:var(--accent3); border:1px solid rgba(255,107,107,0.25)">PIR Sensor</div>
+            <div class="arch-box" style="background:rgba(255,107,107,0.1); color:var(--accent3); border:1px solid rgba(255,107,107,0.25)">Temp/Humidity</div>
+            <div class="arch-box" style="background:rgba(255,107,107,0.1); color:var(--accent3); border:1px solid rgba(255,107,107,0.25)">Relay (ไฟ/AC)</div>
+            <div class="arch-box" style="background:rgba(255,107,107,0.1); color:var(--accent3); border:1px solid rgba(255,107,107,0.25)">LED Matrix Display</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== FEATURES ======================== -->
+  <section id="features" class="section">
+    <div class="page-header">
+      <div class="section-tag">02 — FEATURES</div>
+      <h2 class="page-title">Features ทั้งหมด</h2>
+      <p class="page-desc">ฟีเจอร์ครบทุก User Journey ตั้งแต่จอง ใช้งาน ไปจนถึง Analytics</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(79,142,255,0.15)">📅</div>
+          การจองห้องประชุม
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-content">
+              <div class="feature-name">ค้นหาห้องว่างแบบ Real-time</div>
+              <div class="feature-desc">ระบุวันเวลา จำนวนคน อุปกรณ์ที่ต้องการ แล้วแสดงห้องที่ว่างทันที</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-content">
+              <div class="feature-name">Calendar View การจอง</div>
+              <div class="feature-desc">เห็น Timeline ของแต่ละห้องแบบ Weekly/Monthly View</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-content">
+              <div class="feature-name">จองซ้ำอัตโนมัติ (Recurring)</div>
+              <div class="feature-desc">ตั้งประชุมประจำ เช่น ทุกวันจันทร์ 9:00 น.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">04</div>
+            <div class="feature-content">
+              <div class="feature-name">Invite ผู้เข้าประชุม</div>
+              <div class="feature-desc">เพิ่มชื่อและส่งอีเมลเชิญอัตโนมัติ รวมถึง Google Calendar</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">05</div>
+            <div class="feature-content">
+              <div class="feature-name">แก้ไข / ยกเลิกการจอง</div>
+              <div class="feature-desc">พร้อมแจ้ง Notification ไปยังผู้เกี่ยวข้องทั้งหมด</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,229,176,0.12)">📡</div>
+          IoT Integration
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-content">
+              <div class="feature-name">สถานะ Occupied / Available</div>
+              <div class="feature-desc">PIR Sensor ตรวจจับการมีคนในห้องอัปเดต Real-time บนเว็บ</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-content">
+              <div class="feature-name">Auto Cancel No-Show</div>
+              <div class="feature-desc">ถ้าไม่มีคนเข้าห้องภายใน 10 นาทีหลังเวลาเริ่ม ยกเลิกอัตโนมัติ</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-content">
+              <div class="feature-name">Auto Control (ไฟ/แอร์)</div>
+              <div class="feature-desc">เปิดก่อนการประชุม 5 นาที ปิดอัตโนมัติเมื่อห้องว่าง</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">04</div>
+            <div class="feature-content">
+              <div class="feature-name">LED Display หน้าห้อง</div>
+              <div class="feature-desc">แสดงชื่อการประชุม เวลา และสถานะด้วยสีแดง/เขียว</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">05</div>
+            <div class="feature-content">
+              <div class="feature-name">Environment Monitoring</div>
+              <div class="feature-desc">แสดงอุณหภูมิ ความชื้น CO₂ ในห้องประชุม</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(255,201,60,0.12)">🔔</div>
+          Notification System
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-content">
+              <div class="feature-name">Email Confirmation</div>
+              <div class="feature-desc">ส่งยืนยันการจองพร้อม QR Code สำหรับ Check-in</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-content">
+              <div class="feature-name">LINE Notify แจ้งเตือน</div>
+              <div class="feature-desc">แจ้งก่อนประชุม 15 นาที / แจ้งเมื่อถูกยกเลิก</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-content">
+              <div class="feature-name">Reminder อัตโนมัติ</div>
+              <div class="feature-desc">ส่ง Reminder 1 วันก่อน และ 30 นาทีก่อนประชุม</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(255,107,107,0.12)">📊</div>
+          Analytics & Reports
+        </div>
+        <div style="display:flex; flex-direction:column; gap:7px">
+          <div class="feature-item">
+            <div class="feature-num">01</div>
+            <div class="feature-content">
+              <div class="feature-name">Utilization Rate</div>
+              <div class="feature-desc">% การใช้งานแต่ละห้อง รายวัน/สัปดาห์/เดือน</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">02</div>
+            <div class="feature-content">
+              <div class="feature-name">Peak Time Analysis</div>
+              <div class="feature-desc">ช่วงเวลาที่มีการจองมากที่สุด</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">03</div>
+            <div class="feature-content">
+              <div class="feature-name">No-Show Report</div>
+              <div class="feature-desc">รายงานการ Ghost จองแต่ไม่มาใช้</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">04</div>
+            <div class="feature-content">
+              <div class="feature-name">Energy Report</div>
+              <div class="feature-desc">การใช้ไฟฟ้า/แอร์ เทียบกับช่วงก่อนติดตั้งระบบ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== ARCHITECTURE ======================== -->
+  <section id="architecture" class="section">
+    <div class="page-header">
+      <div class="section-tag">03 — ARCHITECTURE</div>
+      <h2 class="page-title">System Architecture</h2>
+      <p class="page-desc">การออกแบบโครงสร้างระบบทั้งหมด แบบ Scalable และ Maintainable</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(0,229,176,0.12)">📡</div>
+        IoT Data Flow
+      </div>
+      <div class="iot-flow">
+        <div class="flow-box" style="background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.25)">
+          <div class="flow-emoji">📡</div>
+          <div style="font-size:12px; color:var(--accent3); font-weight:600">ESP32</div>
+          <div class="flow-label">Sensor Node</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="background:rgba(79,142,255,0.1); border:1px solid rgba(79,142,255,0.25)">
+          <div class="flow-emoji">📨</div>
+          <div style="font-size:12px; color:var(--accent); font-weight:600">MQTT</div>
+          <div class="flow-label">Publish Topic</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="background:rgba(0,229,176,0.08); border:1px solid rgba(0,229,176,0.2)">
+          <div class="flow-emoji">🖥️</div>
+          <div style="font-size:12px; color:var(--accent2); font-weight:600">Mosquitto</div>
+          <div class="flow-label">MQTT Broker</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="background:rgba(255,201,60,0.08); border:1px solid rgba(255,201,60,0.2)">
+          <div class="flow-emoji">⚙️</div>
+          <div style="font-size:12px; color:var(--accent4); font-weight:600">Node.js</div>
+          <div class="flow-label">Subscribe + Process</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="background:rgba(79,142,255,0.1); border:1px solid rgba(79,142,255,0.25)">
+          <div class="flow-emoji">🌐</div>
+          <div style="font-size:12px; color:var(--accent); font-weight:600">WebSocket</div>
+          <div class="flow-label">Push to Frontend</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="background:rgba(0,229,176,0.08); border:1px solid rgba(0,229,176,0.2)">
+          <div class="flow-emoji">💻</div>
+          <div style="font-size:12px; color:var(--accent2); font-weight:600">Dashboard</div>
+          <div class="flow-label">Real-time UI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(79,142,255,0.15)">🗂️</div>
+          Folder Structure (Backend)
+        </div>
+        <div class="code-block">
+<span class="comment"># Backend Structure</span>
+smart-office-api/
+├── <span class="fn">src/</span>
+│   ├── <span class="fn">routes/</span>
+│   │   ├── auth.routes.js
+│   │   ├── rooms.routes.js
+│   │   ├── bookings.routes.js
+│   │   └── iot.routes.js
+│   ├── <span class="fn">controllers/</span>
+│   ├── <span class="fn">services/</span>
+│   │   ├── booking.service.js
+│   │   ├── iot.service.js
+│   │   └── notification.service.js
+│   ├── <span class="fn">mqtt/</span>
+│   │   ├── client.js
+│   │   └── handlers.js
+│   ├── <span class="fn">websocket/</span>
+│   ├── <span class="fn">models/</span>
+│   └── <span class="fn">middleware/</span>
+├── <span class="fn">prisma/</span>
+│   └── schema.prisma
+└── package.json
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,229,176,0.12)">🖥️</div>
+          Folder Structure (Frontend)
+        </div>
+        <div class="code-block">
+<span class="comment"># Frontend Structure</span>
+smart-office-web/
+├── <span class="fn">app/</span>
+│   ├── <span class="fn">(auth)/</span>
+│   │   └── login/
+│   ├── <span class="fn">dashboard/</span>
+│   ├── <span class="fn">rooms/</span>
+│   │   ├── page.jsx  <span class="comment"># ค้นหาห้อง</span>
+│   │   └── [id]/     <span class="comment"># รายละเอียด</span>
+│   ├── <span class="fn">bookings/</span>
+│   │   ├── new/
+│   │   └── [id]/
+│   └── <span class="fn">admin/</span>
+├── <span class="fn">components/</span>
+│   ├── RoomCard.jsx
+│   ├── BookingCalendar.jsx
+│   └── IotStatus.jsx
+└── <span class="fn">lib/</span>
+    ├── api.js
+    └── socket.js
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(255,107,107,0.12)">🔒</div>
+        Security Architecture
+      </div>
+      <div class="grid-3">
+        <div style="background:var(--bg3); border-radius:10px; padding:16px; border:1px solid var(--border)">
+          <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px">🔑 Authentication</div>
+          <div style="font-size:12.5px; color:var(--text2); line-height:1.8">
+            JWT Access Token (15 min)<br>
+            Refresh Token (7 days)<br>
+            HTTP-only Cookie<br>
+            bcrypt Password Hash
+          </div>
+        </div>
+        <div style="background:var(--bg3); border-radius:10px; padding:16px; border:1px solid var(--border)">
+          <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px">🛡️ Authorization</div>
+          <div style="font-size:12.5px; color:var(--text2); line-height:1.8">
+            Role-based Access (RBAC)<br>
+            Route middleware guard<br>
+            Resource ownership check<br>
+            Rate Limiting (express)
+          </div>
+        </div>
+        <div style="background:var(--bg3); border-radius:10px; padding:16px; border:1px solid var(--border)">
+          <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px">📡 IoT Security</div>
+          <div style="font-size:12.5px; color:var(--text2); line-height:1.8">
+            MQTT over TLS (Port 8883)<br>
+            Device Authentication<br>
+            Topic ACL per device<br>
+            API Key per ESP32
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== DATABASE ======================== -->
+  <section id="database" class="section">
+    <div class="page-header">
+      <div class="section-tag">04 — DATABASE</div>
+      <h2 class="page-title">Database Schema</h2>
+      <p class="page-desc">PostgreSQL เป็นฐานข้อมูลหลัก ใช้ Prisma ORM</p>
+    </div>
+
+    <div class="highlight-box">
+      <strong>ฐานข้อมูลหลัก:</strong> PostgreSQL (ข้อมูล Business) &nbsp;|&nbsp;
+      <strong>Cache:</strong> Redis (Session, Real-time State) &nbsp;|&nbsp;
+      <strong>Time-series:</strong> InfluxDB (Sensor Data ย้อนหลัง)
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:20px">
+
+      <div class="card">
+        <div class="card-title"><span style="font-family:'Space Mono',monospace; color:var(--accent4)">TABLE</span> &nbsp; users</div>
+        <table class="schema-table">
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td class="field-name">id</td><td class="dtype">UUID</td><td class="pk">PK</td><td>Unique User ID</td></tr>
+          <tr><td class="field-name">email</td><td class="dtype">VARCHAR(255)</td><td></td><td>อีเมลบริษัท (Unique)</td></tr>
+          <tr><td class="field-name">name</td><td class="dtype">VARCHAR(100)</td><td></td><td>ชื่อ-นามสกุล</td></tr>
+          <tr><td class="field-name">department</td><td class="dtype">VARCHAR(100)</td><td></td><td>ฝ่าย/แผนก</td></tr>
+          <tr><td class="field-name">role</td><td class="dtype">ENUM</td><td></td><td>employee | manager | admin</td></tr>
+          <tr><td class="field-name">line_user_id</td><td class="dtype">VARCHAR(100)</td><td></td><td>สำหรับ LINE Notification</td></tr>
+          <tr><td class="field-name">created_at</td><td class="dtype">TIMESTAMP</td><td></td><td>วันที่สร้างบัญชี</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span style="font-family:'Space Mono',monospace; color:var(--accent4)">TABLE</span> &nbsp; rooms</div>
+        <table class="schema-table">
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td class="field-name">id</td><td class="dtype">UUID</td><td class="pk">PK</td><td>Room ID</td></tr>
+          <tr><td class="field-name">name</td><td class="dtype">VARCHAR(100)</td><td></td><td>ชื่อห้อง เช่น "Board Room A"</td></tr>
+          <tr><td class="field-name">floor</td><td class="dtype">INT</td><td></td><td>ชั้น</td></tr>
+          <tr><td class="field-name">capacity</td><td class="dtype">INT</td><td></td><td>ความจุสูงสุด</td></tr>
+          <tr><td class="field-name">amenities</td><td class="dtype">JSONB</td><td></td><td>[ "projector", "whiteboard", "tv" ]</td></tr>
+          <tr><td class="field-name">esp32_device_id</td><td class="dtype">VARCHAR(100)</td><td></td><td>รหัส IoT Device ที่ผูกกับห้อง</td></tr>
+          <tr><td class="field-name">is_active</td><td class="dtype">BOOLEAN</td><td></td><td>สถานะห้อง (เปิด/ปิดให้จอง)</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span style="font-family:'Space Mono',monospace; color:var(--accent4)">TABLE</span> &nbsp; bookings</div>
+        <table class="schema-table">
+          <tr><th>Column</th><th>Type</th><th>Key</th><th>Description</th></tr>
+          <tr><td class="field-name">id</td><td class="dtype">UUID</td><td class="pk">PK</td><td>Booking ID</td></tr>
+          <tr><td class="field-name">room_id</td><td class="dtype">UUID</td><td class="fk">FK → rooms</td><td>ห้องที่จอง</td></tr>
+          <tr><td class="field-name">user_id</td><td class="dtype">UUID</td><td class="fk">FK → users</td><td>ผู้จอง</td></tr>
+          <tr><td class="field-name">title</td><td class="dtype">VARCHAR(200)</td><td></td><td>ชื่อการประชุม</td></tr>
+          <tr><td class="field-name">start_time</td><td class="dtype">TIMESTAMP</td><td></td><td>เวลาเริ่ม</td></tr>
+          <tr><td class="field-name">end_time</td><td class="dtype">TIMESTAMP</td><td></td><td>เวลาสิ้นสุด</td></tr>
+          <tr><td class="field-name">attendees</td><td class="dtype">JSONB</td><td></td><td>Array of user_ids / emails</td></tr>
+          <tr><td class="field-name">status</td><td class="dtype">ENUM</td><td></td><td>pending | confirmed | cancelled | completed | no_show</td></tr>
+          <tr><td class="field-name">qr_token</td><td class="dtype">VARCHAR(255)</td><td></td><td>Token สำหรับ QR Check-in</td></tr>
+          <tr><td class="field-name">checked_in_at</td><td class="dtype">TIMESTAMP</td><td></td><td>เวลา Check-in จริง</td></tr>
+          <tr><td class="field-name">recurrence_rule</td><td class="dtype">VARCHAR(200)</td><td></td><td>iCal RRULE สำหรับ Recurring</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span style="font-family:'Space Mono',monospace; color:var(--accent4)">TABLE</span> &nbsp; iot_devices + sensor_readings</div>
+        <div class="grid-2">
+          <table class="schema-table">
+            <tr><th colspan="4">iot_devices</th></tr>
+            <tr><th>Column</th><th>Type</th><th>Key</th><th>Desc</th></tr>
+            <tr><td class="field-name">device_id</td><td class="dtype">VARCHAR</td><td class="pk">PK</td><td>รหัส Device</td></tr>
+            <tr><td class="field-name">room_id</td><td class="dtype">UUID</td><td class="fk">FK</td><td>ห้องที่ติด</td></tr>
+            <tr><td class="field-name">last_seen</td><td class="dtype">TIMESTAMP</td><td></td><td>Online ล่าสุด</td></tr>
+            <tr><td class="field-name">firmware_ver</td><td class="dtype">VARCHAR</td><td></td><td>Version</td></tr>
+          </table>
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border); font-size:12.5px; color:var(--text2)">
+            <div style="font-weight:600; color:var(--text); margin-bottom:10px">📦 InfluxDB (sensor_readings)</div>
+            <div style="line-height:2">
+              measurement: <span style="color:var(--accent)">room_sensor</span><br>
+              tags: <span style="color:var(--accent2)">device_id, room_id</span><br>
+              fields:<br>
+              &nbsp;&nbsp;<span style="color:var(--accent4)">temperature</span> (float)<br>
+              &nbsp;&nbsp;<span style="color:var(--accent4)">humidity</span> (float)<br>
+              &nbsp;&nbsp;<span style="color:var(--accent4)">co2</span> (int)<br>
+              &nbsp;&nbsp;<span style="color:var(--accent4)">occupancy</span> (bool)<br>
+              &nbsp;&nbsp;<span style="color:var(--accent4)">pir_count</span> (int)
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================== API ======================== -->
+  <section id="api" class="section">
+    <div class="page-header">
+      <div class="section-tag">05 — API DESIGN</div>
+      <h2 class="page-title">REST API Endpoints</h2>
+      <p class="page-desc">Base URL: <span style="font-family:'Space Mono',monospace; color:var(--accent)">https://api.smartoffice.co/v1</span></p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔐 Authentication</div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/auth/login</span><span class="endpoint-desc">Login รับ JWT Token</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/auth/refresh</span><span class="endpoint-desc">Refresh Access Token</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/auth/logout</span><span class="endpoint-desc">Revoke Refresh Token</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏢 Rooms</div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/rooms</span><span class="endpoint-desc">รายการห้องทั้งหมด</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/rooms/:id</span><span class="endpoint-desc">รายละเอียดห้อง + IoT Status</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/rooms/available?date=&start=&end=&capacity=</span><span class="endpoint-desc">ค้นหาห้องว่าง</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/rooms</span><span class="endpoint-desc">เพิ่มห้องใหม่ [Admin]</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/rooms/:id</span><span class="endpoint-desc">แก้ไขข้อมูลห้อง [Admin]</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Bookings</div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/bookings</span><span class="endpoint-desc">การจองของฉัน</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/bookings/:id</span><span class="endpoint-desc">รายละเอียดการจอง</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/bookings</span><span class="endpoint-desc">สร้างการจองใหม่</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/bookings/:id</span><span class="endpoint-desc">แก้ไขการจอง</span></div>
+      <div class="endpoint"><span class="method method-delete">DEL</span><span class="endpoint-path">/bookings/:id</span><span class="endpoint-desc">ยกเลิกการจอง</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/bookings/:id/checkin</span><span class="endpoint-desc">Check-in ด้วย QR Token</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/rooms/:id/schedule?date=</span><span class="endpoint-desc">ตารางการจองของห้องรายวัน</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📡 IoT</div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/iot/rooms/:id/status</span><span class="endpoint-desc">สถานะ IoT ปัจจุบัน</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/iot/rooms/:id/history?from=&to=</span><span class="endpoint-desc">ประวัติ Sensor Data</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/iot/devices/:id/command</span><span class="endpoint-desc">สั่งงาน Device (เปิด/ปิดแอร์-ไฟ) [Admin]</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/iot/devices</span><span class="endpoint-desc">รายการ Devices ทั้งหมด [Admin]</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Analytics [Admin/Manager]</div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/analytics/utilization?from=&to=</span><span class="endpoint-desc">% การใช้งานแต่ละห้อง</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/analytics/no-shows?from=&to=</span><span class="endpoint-desc">รายงาน No-Show</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/analytics/peak-hours</span><span class="endpoint-desc">Peak Hour Analysis</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/analytics/energy-report</span><span class="endpoint-desc">รายงานการใช้พลังงาน</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌐 WebSocket Events</div>
+      <div style="display:flex; flex-direction:column; gap:8px; font-size:13px">
+        <div style="display:flex; gap:16px; padding:10px 14px; background:var(--bg3); border-radius:8px">
+          <span style="font-family:'Space Mono',monospace; color:var(--accent2); min-width:200px">room:{id}:occupancy</span>
+          <span style="color:var(--text2)">Push เมื่อ PIR ตรวจพบการเปลี่ยนแปลง</span>
+        </div>
+        <div style="display:flex; gap:16px; padding:10px 14px; background:var(--bg3); border-radius:8px">
+          <span style="font-family:'Space Mono',monospace; color:var(--accent2); min-width:200px">room:{id}:booking_update</span>
+          <span style="color:var(--text2)">Push เมื่อมีการจอง/ยกเลิก/checkin</span>
+        </div>
+        <div style="display:flex; gap:16px; padding:10px 14px; background:var(--bg3); border-radius:8px">
+          <span style="font-family:'Space Mono',monospace; color:var(--accent2); min-width:200px">room:{id}:sensor</span>
+          <span style="color:var(--text2)">Push ข้อมูล Sensor ทุก 30 วินาที</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== IOT ======================== -->
+  <section id="iot" class="section">
+    <div class="page-header">
+      <div class="section-tag">06 — IoT</div>
+      <h2 class="page-title">IoT Integration Detail</h2>
+      <p class="page-desc">การเชื่อมต่อ Hardware กับ Software ผ่าน MQTT Protocol</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="card-icon" style="background:rgba(255,107,107,0.12)">⚡</div>
+        ESP32 Firmware Logic
+      </div>
+      <div class="code-block">
+<span class="comment">// ESP32 Arduino Code (Simplified)</span>
+<span class="kw">#include</span> <span class="str">&lt;WiFi.h&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;PubSubClient.h&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;DHT.h&gt;</span>
+
+<span class="kw">const char*</span> DEVICE_ID = <span class="str">"ESP32-ROOM-A"</span>;
+<span class="kw">const char*</span> MQTT_TOPIC_SENSOR = <span class="str">"office/room-a/sensor"</span>;
+<span class="kw">const char*</span> MQTT_TOPIC_CMD  = <span class="str">"office/room-a/command"</span>;
+
+<span class="fn">void</span> <span class="fn">publishSensorData</span>() {
+  <span class="kw">float</span> temp = dht.readTemperature();
+  <span class="kw">bool</span>  occ  = digitalRead(PIR_PIN);
+
+  <span class="comment">// ส่ง JSON ไปยัง MQTT Broker</span>
+  String payload = <span class="str">"{\"temp\":"</span> + String(temp)
+    + <span class="str">",\"occupancy\":"</span> + String(occ)
+    + <span class="str">",\"device\":\""</span> + DEVICE_ID + <span class="str">"\"}"</span>;
+
+  client.<span class="fn">publish</span>(MQTT_TOPIC_SENSOR, payload.<span class="fn">c_str</span>());
+}
+
+<span class="comment">// รับคำสั่งจาก Server (เปิด/ปิดแอร์-ไฟ)</span>
+<span class="fn">void</span> <span class="fn">onMessage</span>(String topic, String message) {
+  <span class="kw">if</span> (message == <span class="str">"light_on"</span>)  digitalWrite(LIGHT_RELAY, HIGH);
+  <span class="kw">if</span> (message == <span class="str">"ac_on"</span>)     digitalWrite(AC_RELAY, HIGH);
+}
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(79,142,255,0.15)">📨</div>
+          MQTT Topic Structure
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div style="background:var(--bg3); border-radius:8px; padding:12px 16px; border:1px solid var(--border); font-size:12.5px">
+            <div style="font-family:'Space Mono',monospace; color:var(--accent); margin-bottom:4px">office/{room-id}/sensor</div>
+            <div style="color:var(--text2)">📤 ESP32 Publish ข้อมูล Sensor ทุก 30 วิ</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:12px 16px; border:1px solid var(--border); font-size:12.5px">
+            <div style="font-family:'Space Mono',monospace; color:var(--accent); margin-bottom:4px">office/{room-id}/command</div>
+            <div style="color:var(--text2)">📥 Server Publish คำสั่งไปยัง Device</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:12px 16px; border:1px solid var(--border); font-size:12.5px">
+            <div style="font-family:'Space Mono',monospace; color:var(--accent); margin-bottom:4px">office/{room-id}/status</div>
+            <div style="color:var(--text2)">📤 Device Report Online/Offline Heartbeat</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:12px 16px; border:1px solid var(--border); font-size:12.5px">
+            <div style="font-family:'Space Mono',monospace; color:var(--accent); margin-bottom:4px">office/{room-id}/display</div>
+            <div style="color:var(--text2)">📥 Server ส่งข้อมูลไปแสดงบน LED Display</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,229,176,0.12)">🤖</div>
+          Automation Rules
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px">
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:12px; font-weight:600; color:var(--accent2); margin-bottom:6px">⏰ Pre-Meeting</div>
+            <div style="font-size:12.5px; color:var(--text2)">ก่อนเวลาประชุม 5 นาที → เปิดแอร์ + ไฟ + อัปเดต LED Display</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:12px; font-weight:600; color:var(--accent3); margin-bottom:6px">🚫 No-Show Cancel</div>
+            <div style="font-size:12.5px; color:var(--text2)">PIR = 0 นาน 10 นาที หลังเวลาเริ่ม → ยกเลิกการจอง + แจ้ง Notify</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:12px; font-weight:600; color:var(--accent4); margin-bottom:6px">🔚 Post-Meeting</div>
+            <div style="font-size:12.5px; color:var(--text2)">ผ่านเวลาสิ้นสุด + PIR = 0 → ปิดแอร์/ไฟ + อัปเดตสถานะ completed</div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:12px; font-weight:600; color:var(--accent); margin-bottom:6px">⚠️ Overrun Alert</div>
+            <div style="font-size:12.5px; color:var(--text2)">PIR = 1 แต่เวลาหมดแล้ว → แจ้งเตือนผู้จองถัดไปว่าห้องยังไม่ว่าง</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== TECH STACK ======================== -->
+  <section id="techstack" class="section">
+    <div class="page-header">
+      <div class="section-tag">07 — TECH STACK</div>
+      <h2 class="page-title">Technology Stack</h2>
+      <p class="page-desc">เทคโนโลยีที่ใช้ในแต่ละ Layer พร้อมเหตุผล</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🖥️ Frontend</div>
+        <div class="tech-row"><div class="tech-layer">Framework</div><div class="tech-name">Next.js 14 (App Router)</div><div class="tech-reason">SSR + SEO + เร็ว</div></div>
+        <div class="tech-row"><div class="tech-layer">UI Library</div><div class="tech-name">Tailwind CSS + shadcn/ui</div><div class="tech-reason">เร็วสวย ไม่ต้องเขียน CSS</div></div>
+        <div class="tech-row"><div class="tech-layer">Calendar</div><div class="tech-name">FullCalendar.io</div><div class="tech-reason">Booking Calendar</div></div>
+        <div class="tech-row"><div class="tech-layer">State</div><div class="tech-name">Zustand + React Query</div><div class="tech-reason">Global + Server State</div></div>
+        <div class="tech-row"><div class="tech-layer">Realtime</div><div class="tech-name">Socket.io-client</div><div class="tech-reason">WebSocket IoT Data</div></div>
+        <div class="tech-row"><div class="tech-layer">Charts</div><div class="tech-name">Recharts</div><div class="tech-reason">Analytics Dashboard</div></div>
+        <div class="tech-row"><div class="tech-layer">QR Code</div><div class="tech-name">qrcode.react</div><div class="tech-reason">Generate QR Check-in</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ Backend</div>
+        <div class="tech-row"><div class="tech-layer">Runtime</div><div class="tech-name">Node.js 20 LTS</div><div class="tech-reason">Stable + Fast</div></div>
+        <div class="tech-row"><div class="tech-layer">Framework</div><div class="tech-name">Express.js</div><div class="tech-reason">Lightweight REST API</div></div>
+        <div class="tech-row"><div class="tech-layer">ORM</div><div class="tech-name">Prisma</div><div class="tech-reason">Type-safe DB Access</div></div>
+        <div class="tech-row"><div class="tech-layer">Realtime</div><div class="tech-name">Socket.io</div><div class="tech-reason">WebSocket Server</div></div>
+        <div class="tech-row"><div class="tech-layer">MQTT</div><div class="tech-name">mqtt.js (npm)</div><div class="tech-reason">Subscribe IoT Topics</div></div>
+        <div class="tech-row"><div class="tech-layer">Auth</div><div class="tech-name">JWT + bcrypt</div><div class="tech-reason">Secure Login</div></div>
+        <div class="tech-row"><div class="tech-layer">Email</div><div class="tech-name">Nodemailer + MJML</div><div class="tech-reason">HTML Email Template</div></div>
+        <div class="tech-row"><div class="tech-layer">Jobs</div><div class="tech-name">node-cron</div><div class="tech-reason">Auto Cancel No-Show</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗄️ Database & Infra</div>
+        <div class="tech-row"><div class="tech-layer">Main DB</div><div class="tech-name">PostgreSQL 16</div><div class="tech-reason">Relational, Reliable</div></div>
+        <div class="tech-row"><div class="tech-layer">Cache</div><div class="tech-name">Redis 7</div><div class="tech-reason">Session + Pub/Sub</div></div>
+        <div class="tech-row"><div class="tech-layer">Time-series</div><div class="tech-name">InfluxDB</div><div class="tech-reason">Sensor Data History</div></div>
+        <div class="tech-row"><div class="tech-layer">MQTT Broker</div><div class="tech-name">Eclipse Mosquitto</div><div class="tech-reason">Open-source, Lightweight</div></div>
+        <div class="tech-row"><div class="tech-layer">Container</div><div class="tech-name">Docker Compose</div><div class="tech-reason">Dev + Prod Env</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📡 IoT Hardware</div>
+        <div class="tech-row"><div class="tech-layer">MCU</div><div class="tech-name">ESP32 WROOM-32</div><div class="tech-reason">WiFi Built-in, ราคาถูก</div></div>
+        <div class="tech-row"><div class="tech-layer">Occupancy</div><div class="tech-name">HC-SR501 PIR</div><div class="tech-reason">ตรวจจับการเคลื่อนไหว</div></div>
+        <div class="tech-row"><div class="tech-layer">Env</div><div class="tech-name">DHT22</div><div class="tech-reason">Temp + Humidity</div></div>
+        <div class="tech-row"><div class="tech-layer">Display</div><div class="tech-name">MAX7219 LED Matrix</div><div class="tech-reason">แสดงสถานะหน้าห้อง</div></div>
+        <div class="tech-row"><div class="tech-layer">Relay</div><div class="tech-name">5V 4-Channel Relay</div><div class="tech-reason">ควบคุมไฟ/แอร์</div></div>
+        <div class="tech-row"><div class="tech-layer">Power</div><div class="tech-name">5V USB Adapter</div><div class="tech-reason">พลังงานไฟ AC</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== ROLES ======================== -->
+  <section id="roles" class="section">
+    <div class="page-header">
+      <div class="section-tag">08 — USER ROLES</div>
+      <h2 class="page-title">User Roles & Permissions</h2>
+      <p class="page-desc">3 ระดับผู้ใช้งาน ออกแบบตามโครงสร้างองค์กร</p>
+    </div>
+
+    <div class="role-card">
+      <div class="role-title">
+        <div class="role-name"><span style="font-size:20px">👤</span> Employee (พนักงาน)</div>
+        <span class="badge badge-blue">Default</span>
+      </div>
+      <div class="permissions">
+        <span class="perm">ค้นหาห้องว่าง</span>
+        <span class="perm">จองห้องประชุม</span>
+        <span class="perm">แก้ไข/ยกเลิกการจองของตัวเอง</span>
+        <span class="perm">ดู Calendar ห้อง</span>
+        <span class="perm">QR Check-in</span>
+        <span class="perm">ดูสถานะ IoT ห้อง</span>
+        <span class="perm">ดู Profile ตัวเอง</span>
+      </div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-title">
+        <div class="role-name"><span style="font-size:20px">👔</span> Manager (ผู้จัดการ)</div>
+        <span class="badge badge-green">All Employee + More</span>
+      </div>
+      <div class="permissions">
+        <span class="perm" style="background:rgba(79,142,255,0.1); border-color:rgba(79,142,255,0.3); color:var(--accent)">ยกเลิกการจองของคนในทีม</span>
+        <span class="perm" style="background:rgba(79,142,255,0.1); border-color:rgba(79,142,255,0.3); color:var(--accent)">ดู Analytics ภาพรวม</span>
+        <span class="perm" style="background:rgba(79,142,255,0.1); border-color:rgba(79,142,255,0.3); color:var(--accent)">Export รายงานการใช้งาน</span>
+        <span class="perm" style="background:rgba(79,142,255,0.1); border-color:rgba(79,142,255,0.3); color:var(--accent)">จองแบบ Priority (ห้องสงวน)</span>
+      </div>
+    </div>
+
+    <div class="role-card">
+      <div class="role-title">
+        <div class="role-name"><span style="font-size:20px">🛡️</span> Admin (ผู้ดูแลระบบ)</div>
+        <span class="badge badge-red">Full Access</span>
+      </div>
+      <div class="permissions">
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">จัดการห้องประชุม (CRUD)</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">จัดการ Users</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">ควบคุม IoT Device (สั่งเปิด/ปิด)</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">ดู Full Analytics</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">จัดการ Automation Rules</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">Override การจองทุกการจอง</span>
+        <span class="perm" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3); color:var(--accent3)">System Settings</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== TIMELINE ======================== -->
+  <section id="timeline" class="section">
+    <div class="page-header">
+      <div class="section-tag">09 — TIMELINE</div>
+      <h2 class="page-title">Development Timeline</h2>
+      <p class="page-desc">แผน 6 เดือน แบ่งเป็น 3 Phase ใหญ่</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-phase">PHASE 1 — เดือน 1-2</div>
+        <div class="timeline-title">Foundation & Core Booking</div>
+        <ul class="timeline-tasks">
+          <li>ออกแบบ Database Schema และ API Contract</li>
+          <li>ระบบ Authentication (Login / JWT)</li>
+          <li>CRUD ห้องประชุม (Backend + Frontend)</li>
+          <li>ระบบจองพื้นฐาน + Calendar View</li>
+          <li>Email Notification เบื้องต้น</li>
+          <li>ติดตั้ง ESP32 + Sensor 1 ห้อง (Pilot)</li>
+          <li>เชื่อม MQTT → Backend → แสดงสถานะ</li>
+        </ul>
+        <div style="margin-top:12px">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text2); margin-bottom:4px">
+            <span>Deliverable</span><span>35%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-phase">PHASE 2 — เดือน 3-4</div>
+        <div class="timeline-title">IoT Integration & Smart Features</div>
+        <ul class="timeline-tasks">
+          <li>IoT Automation (Auto On/Off, No-Show Cancel)</li>
+          <li>QR Code Check-in System</li>
+          <li>LED Display หน้าห้อง</li>
+          <li>LINE Notify Integration</li>
+          <li>Recurring Booking</li>
+          <li>ติดตั้ง Sensor ครบทุกห้อง</li>
+          <li>Admin Dashboard พื้นฐาน</li>
+        </ul>
+        <div style="margin-top:12px">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text2); margin-bottom:4px">
+            <span>Deliverable</span><span>70%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-phase">PHASE 3 — เดือน 5-6</div>
+        <div class="timeline-title">Analytics, Polish & Launch</div>
+        <ul class="timeline-tasks">
+          <li>Analytics Dashboard (Utilization, Peak Hours, Energy)</li>
+          <li>Google Calendar Sync</li>
+          <li>Role-based Access Control เต็มรูปแบบ</li>
+          <li>User Onboarding + Tutorial</li>
+          <li>Performance Optimization</li>
+          <li>Security Audit</li>
+          <li>Production Deploy + Monitoring</li>
+        </ul>
+        <div style="margin-top:12px">
+          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text2); margin-bottom:4px">
+            <span>Deliverable</span><span>100%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== HARDWARE ======================== -->
+  <section id="hardware" class="section">
+    <div class="page-header">
+      <div class="section-tag">10 — HARDWARE</div>
+      <h2 class="page-title">Hardware Bill of Materials</h2>
+      <p class="page-desc">อุปกรณ์ IoT สำหรับ 1 ห้องประชุม (คูณด้วยจำนวนห้อง)</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📦 Per Room Components</div>
+      <div class="cost-row" style="background:var(--bg3); border-radius:8px 8px 0 0">
+        <div style="flex:1; font-family:'Space Mono',monospace; font-size:10px; color:var(--text3); letter-spacing:1px">COMPONENT</div>
+        <div class="cost-qty" style="font-family:'Space Mono',monospace; font-size:10px; color:var(--text3)">QTY</div>
+        <div class="cost-price" style="font-family:'Space Mono',monospace; font-size:10px; color:var(--text3)">PRICE (THB)</div>
+      </div>
+      <div class="cost-row"><div class="cost-item">ESP32 WROOM-32 Development Board</div><div class="cost-qty">1</div><div class="cost-price">~200</div></div>
+      <div class="cost-row"><div class="cost-item">HC-SR501 PIR Motion Sensor</div><div class="cost-qty">2</div><div class="cost-price">~100</div></div>
+      <div class="cost-row"><div class="cost-item">DHT22 Temperature & Humidity</div><div class="cost-qty">1</div><div class="cost-price">~120</div></div>
+      <div class="cost-row"><div class="cost-item">MAX7219 LED Matrix 8x32</div><div class="cost-qty">1</div><div class="cost-price">~350</div></div>
+      <div class="cost-row"><div class="cost-item">5V 4-Channel Relay Module</div><div class="cost-qty">1</div><div class="cost-price">~150</div></div>
+      <div class="cost-row"><div class="cost-item">RGB LED (Status Indicator)</div><div class="cost-qty">1</div><div class="cost-price">~30</div></div>
+      <div class="cost-row"><div class="cost-item">5V 2A Power Adapter + Cable</div><div class="cost-qty">1</div><div class="cost-price">~150</div></div>
+      <div class="cost-row"><div class="cost-item">Project Box + PCB + Misc</div><div class="cost-qty">1</div><div class="cost-price">~200</div></div>
+      <div class="cost-row" style="background:rgba(79,142,255,0.08); border-top:1px solid var(--accent); border-radius:0 0 8px 8px">
+        <div class="cost-item" style="font-weight:700; color:var(--text)">รวมต่อห้อง</div>
+        <div class="cost-qty"></div>
+        <div class="cost-price" style="font-size:16px; color:var(--accent)">~1,300</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🖥️ Server / Infrastructure</div>
+      <div class="cost-row"><div class="cost-item">Raspberry Pi 5 (8GB) - MQTT Broker + InfluxDB</div><div class="cost-qty">1</div><div class="cost-price">~3,500</div></div>
+      <div class="cost-row"><div class="cost-item">256GB SSD + Power Supply</div><div class="cost-qty">1</div><div class="cost-price">~1,500</div></div>
+      <div class="cost-row"><div class="cost-item">Cloud Server VPS (Backend API)</div><div class="cost-qty">1/mo</div><div class="cost-price">~600/เดือน</div></div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>ตัวอย่าง:</strong> ออฟฟิศ 5 ห้องประชุม = ค่า Hardware IoT ≈ 5 × 1,300 = <strong>6,500 บาท</strong> + Server ≈ <strong>5,600 บาท</strong>
+      รวม Setup ครั้งแรก ≈ <strong>12,100 บาท</strong> (ไม่รวมค่าพัฒนา)
+    </div>
+  </section>
+
+  <!-- ======================== BUDGET ======================== -->
+  <section id="budget" class="section">
+    <div class="page-header">
+      <div class="section-tag">11 — BUDGET</div>
+      <h2 class="page-title">Budget & Resources</h2>
+      <p class="page-desc">ประมาณการค่าใช้จ่ายในการพัฒนาโปรเจ็ก</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">💻 Development Cost (ถ้า Outsource)</div>
+        <div class="cost-row"><div class="cost-item">Backend API Development</div><div class="cost-qty">3 mo</div><div class="cost-price">~60,000</div></div>
+        <div class="cost-row"><div class="cost-item">Frontend Web App</div><div class="cost-qty">3 mo</div><div class="cost-price">~50,000</div></div>
+        <div class="cost-row"><div class="cost-item">IoT Firmware + Integration</div><div class="cost-qty">2 mo</div><div class="cost-price">~30,000</div></div>
+        <div class="cost-row"><div class="cost-item">UI/UX Design</div><div class="cost-qty">1 mo</div><div class="cost-price">~20,000</div></div>
+        <div class="cost-row"><div class="cost-item">Testing + Deploy</div><div class="cost-qty">1 mo</div><div class="cost-price">~15,000</div></div>
+        <div class="cost-row" style="background:rgba(79,142,255,0.08); border-top:1px solid var(--accent)">
+          <div class="cost-item" style="font-weight:700; color:var(--text)">รวม Dev Cost</div>
+          <div class="cost-qty"></div>
+          <div class="cost-price" style="font-size:16px; color:var(--accent)">~175,000</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⏱️ ทำเองก็ได้! (In-house Team)</div>
+        <div style="display:flex; flex-direction:column; gap:8px">
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px">👥 ทีมขั้นต่ำ 2-3 คน</div>
+            <div style="font-size:12.5px; color:var(--text2); line-height:1.8">
+              1× Full-stack Developer<br>
+              1× IoT / Embedded Developer<br>
+              0.5× UI/UX Designer (Part-time)
+            </div>
+          </div>
+          <div style="background:var(--bg3); border-radius:8px; padding:14px; border:1px solid var(--border)">
+            <div style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px">📚 Skills ที่ต้องใช้</div>
+            <div style="font-size:12.5px; color:var(--text2); line-height:1.8">
+              Node.js, React/Next.js, PostgreSQL<br>
+              MQTT, WebSocket, Redis<br>
+              Arduino/ESP32, C++ (Firmware)<br>
+              Docker, Linux (Deployment)
+            </div>
+          </div>
+          <div style="background:rgba(0,229,176,0.07); border-radius:8px; padding:14px; border:1px solid rgba(0,229,176,0.2)">
+            <div style="font-size:13px; font-weight:600; color:var(--accent2); margin-bottom:4px">💡 ประหยัดได้</div>
+            <div style="font-size:12.5px; color:var(--text2)">ถ้าทำเอง ค่าใช้จ่ายหลักเป็นแค่ Hardware + Hosting ≈ 15,000-20,000 บาท</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 สรุปทุกอย่างใน 1 หน้า — Checklist พร้อมเริ่ม</div>
+      <div class="grid-2">
+        <div>
+          <div style="font-size:12px; font-weight:600; color:var(--accent2); letter-spacing:1px; margin-bottom:10px">✅ MUST HAVE (MVP)</div>
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <div style="font-size:13px; color:var(--text2)">☐ ระบบ Login / Register</div>
+            <div style="font-size:13px; color:var(--text2)">☐ จอง / ยกเลิก / แก้ไข</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Calendar View ห้อง</div>
+            <div style="font-size:13px; color:var(--text2)">☐ แสดงสถานะ Real-time (PIR)</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Email Confirmation</div>
+            <div style="font-size:13px; color:var(--text2)">☐ QR Check-in</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Auto Cancel No-Show</div>
+            <div style="font-size:13px; color:var(--text2)">☐ LED Display หน้าห้อง</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px; font-weight:600; color:var(--accent4); letter-spacing:1px; margin-bottom:10px">🌟 NICE TO HAVE (Phase 2+)</div>
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <div style="font-size:13px; color:var(--text2)">☐ LINE Notify</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Google Calendar Sync</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Recurring Booking</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Analytics Dashboard</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Energy Report</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Auto HVAC Control</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Mobile App (PWA)</div>
+            <div style="font-size:13px; color:var(--text2)">☐ Face Recognition Door</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.currentTarget.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
